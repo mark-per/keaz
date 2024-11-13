@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  countryCode          String?
+  email                String?
+  fon                  String
+  firstName            String
+  lastName             String?
+  birthday             DateTime?
+  notes                String    @default("")
+  active               Boolean   @default(false)
+  shopifyID            BigInt?
+  shopifyPurchaseCount Int?
+
+  tags     Tag[]
+  groups   Group[]
+  byUserID String  @db.Uuid
+  byUser   User    @relation(fields: [byUserID], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  title       String
+  isInclusive Boolean
+
+  contacts Contact[]
+  tags     Tag[]
+  byUserID String    @db.Uuid
+  byUser   User      @relation(fields: [byUserID], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  title       String
+  color       String    @default("#8b5cf6")
+  lastApplied DateTime?
+
+  groups   Group[]
+  contacts Contact[]
+  byUserID String    @db.Uuid
+  byUser   User      @relation(fields: [byUserID], references: [id], name: "tags", onDelete: Cascade)
+}
+
+enum UserRole {
+  User
+  Admin
+  SuperAdmin
+}
+
+model User {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  email            String    @unique
+  firstName        String
+  lastName         String
+  code             String    @unique @default(nanoid(10))
+  companyName      String?
+  companyAvatarUrl String?
+  hash             String?
+  fon              String?
+  role             UserRole  @default(User)
+  resetToken       String?
+  activationToken  String?
+  archived         DateTime?
+
+  contacts Contact[]
+  groups   Group[]
+  tags     Tag[]     @relation(name: "tags")
+  adminID  String?   @db.Uuid
+  admin    User?     @relation("adminusers", fields: [adminID], references: [id])
+  users    User[]    @relation("adminusers")
+}
