@@ -138,26 +138,25 @@ export const getSortCommandForSorting = (
 }
 
 export const getPaginateCommands = (
-	sort: string | null,
-	order: Order | null,
+	sort: string | null = 'createdAt', // Default sort field
+	order: Order | null = Order.Desc, // Default to descending order
 	cursorID?: string | null,
 	limit: number | null = 25,
-):
-	| {
-			orderBy: Record<string, unknown> | { createdAt: Order.Desc }
-			cursor?: { id: string }
-			skip?: number
-			take: number
-	  }
-	| Record<string, any> => {
-	return limit === -1
-		? {}
-		: {
-				orderBy:
-					sort && order
-						? [getSortCommandForSorting(sort, order), { id: Order.Desc }]
-						: { createdAt: Order.Desc },
-				...(cursorID && { skip: 1, cursor: { id: cursorID } }),
-				take: limit,
-			}
-}
+): {
+	orderBy: Record<string, unknown> | { createdAt: Order.Desc };
+	cursor?: { id: string };
+	skip?: number;
+	take: number;
+} | Record<string, any> => {
+	if (limit === -1) return {}; // No pagination if limit is -1
+
+	return {
+		orderBy: sort && order
+			? [getSortCommandForSorting(sort, order), { id: Order.Desc }]
+			: { createdAt: Order.Desc }, // Fallback to createdAt descending
+
+		...(cursorID ? { skip: 1, cursor: { id: cursorID } } : {}),
+		take: limit,
+	};
+};
+

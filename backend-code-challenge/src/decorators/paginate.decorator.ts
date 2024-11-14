@@ -6,7 +6,7 @@ import {
 	getSchemaPath,
 } from "@nestjs/swagger"
 import { SwaggerEnumType } from "@nestjs/swagger/dist/types/swagger-enum.type"
-import { Paginate } from "../utils/pagination"
+import { Paginate } from "../common/pagination/pagination"
 
 export const ApiOkResponsePaginated = <
 	DataDto extends Type<unknown>,

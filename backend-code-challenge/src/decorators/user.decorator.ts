@@ -8,9 +8,7 @@ export interface RequestUser {
 
 export const User = createParamDecorator(
 	(data: string, ctx: ExecutionContext): RequestUser => {
-		// const user = ctx.switchToHttp().getRequest().user
-		const request = ctx.switchToHttp().getRequest();
-		const user = request.user;
+		const user = ctx.switchToHttp().getRequest().user
 
 		if (!user) {
 			throw new ForbiddenException("User information is missing from the request");
@@ -29,12 +27,9 @@ export enum UsersAccessType {
 // TODO: @cc rework, still needed at all?
 export const UserId = createParamDecorator(
 	(_, ctx: ExecutionContext): UsersType => {
-		// const user = ctx.switchToHttp().getRequest().user
-		// const query = ctx.switchToHttp().getRequest().query
+		const user = ctx.switchToHttp().getRequest().user
+		const query = ctx.switchToHttp().getRequest().query
 
-		const request = ctx.switchToHttp().getRequest();
-		const user = request.user;
-		const query = request.query;
 
 		if (!user) {
 			throw new ForbiddenException("User information is missing from the request");

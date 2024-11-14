@@ -24,6 +24,9 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     getProfile(@User() user) {
-        return user.userId; // Access userId from the user object
+        if (!user) {
+            throw new UnauthorizedException('User not found. Authentication required');
+        }
+        return user.id;
     }
 }

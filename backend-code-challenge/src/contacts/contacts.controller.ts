@@ -1,16 +1,16 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	ForbiddenException,
-	Get,
-	Logger,
-	MethodNotAllowedException,
-	NotFoundException,
-	Param,
-	Patch,
-	Post,
-	Query,
+    Body,
+    Controller,
+    Delete,
+    ForbiddenException,
+    Get,
+    Logger,
+    MethodNotAllowedException,
+    NotFoundException,
+    Param,
+    Patch,
+    Post,
+    Query, UseGuards,
 } from "@nestjs/common"
 import {ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger"
 import { SkipThrottle } from "@nestjs/throttler"
@@ -29,23 +29,27 @@ import {
 } from "../contacts/entities/keaz-contact.entity"
 import { ApiOkResponsePaginated } from "../decorators/paginate.decorator"
 import { TagsService } from "../tags/tags.service"
-import { formatFon } from "../utils/formatPhonenumber"
-import { GetPaginateQuery, Paginate } from "../utils/pagination"
+import { formatFon } from "../common/utils/formatPhonenumber"
+import { GetPaginateQuery, Paginate } from "../common/pagination/pagination"
 import { User } from "../decorators/user.decorator"
 import { ContactsService } from "./contacts.service"
 import { CreateContactDto } from "./dto/create-contact.dto"
 import { UpdateContactDto } from "./dto/update-contact.dto"
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import {CustomLogger} from "../common/loggers/custom.logger.service";
 
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @ApiTags("contacts")
 @Controller("contacts")
 export class ContactsController {
 	constructor(
 		private readonly contactsService: ContactsService,
 		private readonly tagsService: TagsService,
+		private readonly logger: CustomLogger,
+
 	) {}
 
-	private readonly logger = new Logger(ContactsController.name)
 
 	@ApiOperation({ summary: "Create a new contact" })
 	@ApiResponse({ status: 201, description: "Contact created successfully.", type: Contact })
@@ -56,33 +60,46 @@ export class ContactsController {
 		@Body() createContactDto: CreateContactDto,
 		@User("id") userID: string,
 	): Promise<Contact> {
-		const { fon } = createContactDto
+        // Log request details
+        this.logger.logRequest({ method: 'POST', url: '/contacts', body: createContactDto});
 
-		const parsed = parsePhoneNumberFromString(
-			fon.includes("+") ? fon : `+${fon}`,
-		)
-		const internationalFormat = formatFon(fon)
-		if (!internationalFormat || !parsed) {
-			throw new ForbiddenException("Invalid phone number")
-		}
+        const { fon } = createContactDto;
 
-		const existingContact = await this.contactsService.findOneByFonAndUser(
-			createContactDto.fon,
-			userID,
-		)
-		if (existingContact !== null) {
-			throw new ForbiddenException("Contact already exists")
-		}
+        const parsed = parsePhoneNumberFromString(
+            fon.includes("+") ? fon : `+${fon}`,
+        );
+        const internationalFormat = formatFon(fon);
+        if (!internationalFormat || !parsed) {
+            // Log error if phone number is invalid
+            this.logger.logError(new Error('Invalid phone number'));
+            throw new ForbiddenException("Invalid phone number");
+        }
 
-		return this.contactsService.create(createContactDto, userID, {
-			groups: true,
-			tags: true,
-			whatsAppConversation: {
-				include: {
-					contact: { select: { firstName: true, lastName: true, id: true } },
-				},
-			},
-		})
+        const existingContact = await this.contactsService.findOneByFonAndUser(
+            createContactDto.fon,
+            userID,
+        );
+        if (existingContact !== null) {
+            // Log error if the contact already exists
+            this.logger.logError(new Error('Contact already exists'));
+            throw new ForbiddenException("Contact already exists");
+        }
+
+// Create the contact
+        const result = await this.contactsService.create(createContactDto, userID, {
+            groups: true,
+            tags: true,
+        });
+
+// Log response before returning the result
+        this.logger.logResponse({
+            statusCode: 201,
+            statusMessage: 'Created contact',
+            contact: result,
+        });
+
+// Return the contact after logging
+        return result;
 	}
 
 	@Get()

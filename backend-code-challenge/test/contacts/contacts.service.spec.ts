@@ -4,7 +4,7 @@ import { CustomPrismaService } from "nestjs-prisma"
 import { ConversationsService } from "src/conversations/conversations.service"
 import { ExtendedPrismaClient } from "src/prisma/prisma.extension"
 import { UsersService } from "src/users/users.service"
-import { ContactsService } from "./contacts.service"
+import { ContactsService } from "../../src/contacts/contacts.service"
 
 const mockContact = (
 	name = "Jane Doe",

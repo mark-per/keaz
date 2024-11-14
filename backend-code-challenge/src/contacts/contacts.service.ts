@@ -9,13 +9,13 @@ import {
 } from "../contacts/entities/keaz-contact.entity"
 import { GroupsService } from "../groups/groups.service"
 import { ExtendedPrismaClient } from "../prisma/prisma.extension"
-import { escapeRegExp } from "../utils/escapeRegex"
-import { formatFon } from "../utils/formatPhonenumber"
+import { escapeRegExp } from "../common/utils/escapeRegex"
+import { formatFon } from "../common/utils/formatPhonenumber"
 import {
 	GetPaginateQuery,
 	Order,
 	getPaginateCommands,
-} from "../utils/pagination"
+} from "../common/pagination/pagination"
 import { CreateContactDto } from "./dto/create-contact.dto"
 import { UpdateContactDto } from "./dto/update-contact.dto"
 
@@ -197,30 +197,47 @@ export class ContactsService {
 	}
 
 	update = async (contactID: string, updateContactDto: UpdateContactDto) => {
-		const { fon, tags, ...rest } = updateContactDto
+		const { fon, tags, groups, ...rest } = updateContactDto;
 
+		// Parse and format the phone number if provided
 		const parsed = parsePhoneNumberFromString(
-			fon ? (fon.includes("+") ? fon : `+${fon}`) : "",
-		)
-		const internationalFormat = formatFon(fon ?? "") as string
+			fon ? (fon.includes("+") ? fon : `+${fon}`) : ""
+		);
+		const internationalFormat = formatFon(fon ?? "") as string;
 
 		const fonUpdate = fon
 			? { fon: internationalFormat, countryCode: parsed?.country }
-			: undefined
-		const contact = await this.prismaService.client.contact.update({
-			where: { id: contactID },
-			data: { ...rest, ...fonUpdate, tags: { set: [] } },
-			include: { tags: true, groups: true },
-		})
+			: undefined;
 
-		if (tags?.connect && tags.connect.length > 0) {
-			await Promise.all(
-				tags.connect.map((tag) => this.addTagToContact(tag.id, contactID)),
-			)
+		// Prepare the update data
+		const updateData: any = {
+			...rest,
+			...fonUpdate,
+			tags: { set: [] },
+		};
+
+		// Conditionally add groups if provided and is an array
+		if (Array.isArray(groups) && groups.length > 0) {
+			updateData.groups = { set: groups.map(group => ({ id: group.id })) };
 		}
 
-		return contact
+		// Perform the update
+		const contact = await this.prismaService.client.contact.update({
+			where: { id: contactID },
+			data: updateData,
+			include: { tags: true, groups: true },
+		});
+
+		// Update tags if provided
+		if (tags?.connect && tags.connect.length > 0) {
+			await Promise.all(
+				tags.connect.map((tag) => this.addTagToContact(tag.id, contactID))
+			);
+		}
+
+		return contact;
 	}
+
 
 	upsert = async (
 		dto: UpsertContactDto,

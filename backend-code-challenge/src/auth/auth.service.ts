@@ -3,6 +3,17 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 
+interface AuthPayload {
+    email: string;
+    id: string;
+    role: string;
+}
+
+interface LoginResponse {
+    access_token: string;
+    refresh_token: string;
+}
+
 @Injectable()
 export class AuthService {
     constructor(
@@ -10,19 +21,21 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) {}
 
-    async validateUser(email: string, pass: string): Promise<any> {
+    async validateUser(email: string, pass: string): Promise<AuthPayload | null> {
         const user = await this.usersService.findByEmail(email);
-        if (user && await bcrypt.compare(pass, user.hash)) {
-            const { hash, ...result } = user;
-            return result;
+        if (!user || !(await bcrypt.compare(pass, user.hash))) {
+            throw new UnauthorizedException('Invalid email or password');
         }
-        return null;
+
+        const { hash, ...result } = user;
+        return result as AuthPayload;
     }
 
-    async login(user: any) {
-        const payload = { email: user.email, user: user.id, role: user.role };
+    async login(user: AuthPayload): Promise<LoginResponse> {
+        const payload = { email: user.email, id: user.id, role: user.role };
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),
+            refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' })
         };
     }
 }
