@@ -94,4 +94,7 @@ export class User {
 	})
 	@Expose()
 	role!: UserRole
+
+	@ApiProperty({ required: false, type: String, writeOnly: true })
+	hash!: string;
 }

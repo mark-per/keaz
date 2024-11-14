@@ -6,6 +6,10 @@ import { RolesGuard } from "./decorators/roles.guard"
 import { GroupsModule } from "./groups/groups.module"
 import { extendedPrismaClient } from "./prisma/prisma.extension"
 import { TagsModule } from "./tags/tags.module"
+import {UsersModule} from "./users/users.module";
+import { JwtModule } from '@nestjs/jwt';
+import {AuthModule} from "./auth/auth.module";
+
 
 @Module({
 	imports: [
@@ -19,6 +23,11 @@ import { TagsModule } from "./tags/tags.module"
 		ContactsModule,
 		GroupsModule,
 		TagsModule,
+		AuthModule,
+		UsersModule,JwtModule.register({
+			secret: process.env.JWT_SECRET || 'yourSecretKey',
+			signOptions: { expiresIn: '1h' },
+		}),
 	],
 	controllers: [],
 	providers: [

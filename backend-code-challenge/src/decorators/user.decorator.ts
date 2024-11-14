@@ -21,10 +21,10 @@ export const User = createParamDecorator(
 
 export type UsersType = string | undefined
 
-// export enum UsersAccessType {
-// 	UserIdOrAdminAccess,
-// 	UserIdOrUserFromQuery,
-// }
+export enum UsersAccessType {
+	UserIdOrAdminAccess,
+	UserIdOrUserFromQuery,
+}
 
 // TODO: @cc rework, still needed at all?
 export const UserId = createParamDecorator(
