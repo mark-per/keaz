@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthService } from './service/auth.service';
+import { AuthController } from './controller/auth.controller';
 import { JwtAuthGuard } from './jwt-auth.guard';  // Ensure this path is correct
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';

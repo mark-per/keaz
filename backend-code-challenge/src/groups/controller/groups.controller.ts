@@ -11,9 +11,9 @@ import {
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger"
 
 import { User as UserModel } from "@prisma/client"
-import { GetPaginateQuery, Paginate } from "../common/pagination/pagination"
-import { User } from "../decorators/user.decorator"
-import { GroupsService } from "./groups.service"
+import { GetPaginateQuery, Paginate } from "../../common/pagination/pagination"
+import { User } from "../../decorators/user.decorator"
+import { GroupsService } from "../service/groups.service"
 
 @ApiBearerAuth()
 @ApiTags("groups")

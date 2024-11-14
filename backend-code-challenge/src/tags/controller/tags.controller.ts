@@ -11,9 +11,9 @@ import {
 } from "@nestjs/common"
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger"
 import { User as UserModel } from "@prisma/client"
-import { User, UserId } from "../decorators/user.decorator"
-import { TagsService } from "./tags.service"
-import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import { User, UserId } from "../../decorators/user.decorator"
+import { TagsService } from "../service/tags.service"
+import {JwtAuthGuard} from "../../auth/jwt-auth.guard";
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

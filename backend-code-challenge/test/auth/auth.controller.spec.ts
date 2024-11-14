@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from '../../src/auth/auth.controller';
-import { AuthService } from '../../src/auth/auth.service';
+import { AuthController } from '../../src/auth/controller/auth.controller';
+import { AuthService } from '../../src/auth/service/auth.service';
 import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';
 import { UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { LoginDto } from '../../src/auth/dto/login.dto';

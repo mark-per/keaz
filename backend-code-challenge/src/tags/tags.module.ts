@@ -1,6 +1,6 @@
 import { Logger, Module } from "@nestjs/common"
-import { TagsController } from "./tags.controller"
-import { TagsService } from "./tags.service"
+import { TagsController } from "./controller/tags.controller"
+import { TagsService } from "./service/tags.service"
 
 @Module({
 	imports: [],

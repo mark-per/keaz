@@ -11,10 +11,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const status = exception.status || 500;
         const message = exception.message || 'Internal server error';
 
-        // Log the error message and stack trace
         this.logger.logError(exception);
 
-        // Send the error response
         response.status(status).json({
             statusCode: status,
             message: message,
