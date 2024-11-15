@@ -45,7 +45,7 @@ export class ContactsService {
 
         const parsed = parsePhoneNumberFromString(fon.includes("+") ? fon : `+${fon}`);
         const internationalFormat = formatFon(fon) as string;
-        const contact = await createContactInDatabase(rest, internationalFormat, userID, parsed?.country || '');
+        const contact = await createContactInDatabase(rest, internationalFormat, userID, parsed?.country || '', this.prismaService);
 
         if (tags?.connect?.length) {
             await addTagsToContact(tags.connect, contact.id);
