@@ -24,10 +24,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         this.logger.logError(errorData, correlationId);
 
+        response.status(status).json({
+            statusCode: status,
+            message: message,
+            correlationId,
+        });
     }
-    response.status(status).json({
-                                     statusCode: status,
-                                     message: message,
-                                     correlationId,
-                                 });
 }
