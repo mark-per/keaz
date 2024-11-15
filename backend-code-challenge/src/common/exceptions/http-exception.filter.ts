@@ -11,7 +11,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const request = host.switchToHttp().getRequest();
         const status = exception.status || 500;
         const message = exception.message || 'Internal server error';
-        const correlationId = uuid(); // Generate a unique correlation ID
+        const correlationId = uuid();
 
         const errorData = {
             correlationId,
@@ -22,14 +22,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
             method: request.method,
         };
 
-        // Log the error with correlation ID
         this.logger.logError(errorData, correlationId);
 
-        // Respond to the client
-        response.status(status).json({
-            statusCode: status,
-            message: message,
-            correlationId, // Return correlationId for traceability
-        });
     }
+    response.status(status).json({
+                                     statusCode: status,
+                                     message: message,
+                                     correlationId,
+                                 });
 }

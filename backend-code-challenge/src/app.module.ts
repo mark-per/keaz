@@ -38,12 +38,10 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor'; 
 			provide: APP_GUARD,
 			useClass: RolesGuard,
 		},
-		// Global Logging Interceptor
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: LoggingInterceptor,
 		},
-		// Custom Logger Provider
 		CustomLogger,
 	],
 })

@@ -7,18 +7,17 @@ export class CustomLogger implements LoggerService {
     private logger: Logger;
 
     constructor() {
-        // Configure Winston logger
         this.logger = winston.createLogger({
             level: 'info',
             format: winston.format.combine(
                 winston.format.timestamp(),
-                winston.format.json() // Use JSON format for structured logging
+                winston.format.json()
             ),
             transports: [
                 new winston.transports.Console({
                     format: winston.format.combine(
                         winston.format.colorize(),
-                        winston.format.prettyPrint({ colorize: true }) // Pretty print for console
+                        winston.format.prettyPrint({ colorize: true })
                     ),
                 }),
                 new winston.transports.File({

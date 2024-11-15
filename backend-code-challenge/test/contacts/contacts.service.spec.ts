@@ -108,7 +108,11 @@ describe("ContactsService", () => {
                 fon: "+49123456789",
                 tags: { connect: [{ id: "tag1" }] },
                 firstName: "John",
+                lastName: "Doe",
             };
+
+            const parsedCountry = "DE";
+            const formattedFon = "+49 123456789";
 
             mockValidationService.validatePhoneNumber.mockResolvedValue(undefined);
             mockValidationService.checkExistingContact.mockResolvedValue(undefined);
@@ -118,16 +122,20 @@ describe("ContactsService", () => {
 
             const result = await service.create(createContactDto, "userId");
 
+            expect(mockValidationService.validatePhoneNumber).toHaveBeenCalledWith("+49123456789");
+            expect(mockValidationService.checkExistingContact).toHaveBeenCalledWith("+49123456789", "userId");
+
             expect(helpers.createContactInDatabase).toHaveBeenCalledWith(
-                { firstName: "John" },
-                expect.stringMatching(/^\+49\s?123456789$/),
-                "userId",
-                "DE",
+                { firstName: "John", lastName: "Doe" }, // `rest`
+                formattedFon, // `fon`
+                "userId", // `userID`
+                parsedCountry, // `country`
+                mockPrismaService // `prismaService`
             );
 
             expect(helpers.addTagsToContact).toHaveBeenCalledWith(
                 [{ id: "tag1" }],
-                "123",
+                "123" // contact.id
             );
 
             expect(result).toMatchObject(mockContact());

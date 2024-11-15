@@ -1,6 +1,3 @@
-// contacts.controller.helper.ts
-
-import {CustomLogger} from "../../common/loggers/custom.logger.service";
 import {Paginate} from "../../common/pagination/pagination";
 import {ContactWithTags, ContactWithTagsAndGroups} from "../entities/keaz-contact.entity";
 import {ContactsService, FindAllParams} from "../serviceImplementaion/contacts.service";
@@ -59,8 +56,3 @@ export async function validateContactAccess(
     return contact;
 }
 
-export function validateUser(user: any): void {
-    if (!user || typeof user !== "object" || !user.id || typeof user.id !== "string") {
-        throw new UnauthorizedException("Invalid or missing user information");
-    }
-}

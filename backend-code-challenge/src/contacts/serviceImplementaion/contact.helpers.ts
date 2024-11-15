@@ -6,7 +6,6 @@ import {CreateContactDto} from "../dto/create-contact.dto";
 import {PrismaService} from "../../prisma/prisma.service";
 import {CustomPrismaService} from "nestjs-prisma";
 
-// Function to build search filter
 export function buildSearchFilter(search?: string) {
     if (!search) return {};
 
