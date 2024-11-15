@@ -1,12 +1,11 @@
-// contact.helpers.ts
-
 import {Contact, Prisma} from "@prisma/client";
 import { ContactsSortings } from "../entities/keaz-contact.entity";
 import { escapeRegExp } from "../../common/utils/escapeRegex";
 import {Order} from "../../common/pagination/pagination"
 import {CreateContactDto} from "../dto/create-contact.dto";
+import {PrismaService} from "../../prisma/prisma.service";
+import {CustomPrismaService} from "nestjs-prisma";
 
-// Function to build search filter
 export function buildSearchFilter(search?: string) {
     if (!search) return {};
 
@@ -25,9 +24,10 @@ export async function createContactInDatabase(
     contactData: Omit<CreateContactDto, 'fon' | 'tags'>,
     fon: string,
     userID: string,
-    country: string
+    country: string,
+    prismaService: CustomPrismaService<any>
 ): Promise<Contact> {
-    return await this.prismaService.client.contact.create({
+    return await prismaService.client.contact.create({
         data: {
             ...contactData,
             fon,

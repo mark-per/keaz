@@ -1,15 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { Contact, Tag } from "@prisma/client";
-import { ContactsService } from "../../src/contacts/service/contacts.service";
+import { ContactsService } from "../../src/contacts/serviceImplementaion/contacts.service";
 import { CustomPrismaService } from "nestjs-prisma";
-import { ContactValidationService } from "../../src/contacts/service/contact.validation.service";
+import { ContactValidationService } from "../../src/contacts/serviceImplementaion/contact.validation.service";
 import { GroupsService } from "../../src/groups/service/groups.service";
 import { TagsService } from "../../src/tags/service/tags.service";
 import { getPaginateCommands, Order } from "../../src/common/pagination/pagination";
 import { ContactsSortings, ContactWithTags } from "../../src/contacts/entities/keaz-contact.entity";
 import { CreateContactDto } from "../../src/contacts/dto/create-contact.dto";
 import { UpdateContactDto } from "../../src/contacts/dto/update-contact.dto";
-import * as helpers from "../../src/contacts/service/contact.helpers"; // Import helpers
+import * as helpers from "../../src/contacts/serviceImplementaion/contact.helpers"; // Import helpers
 
 const fixedTimestamp = new Date("2024-11-15T11:43:40.919Z");
 
@@ -108,7 +108,11 @@ describe("ContactsService", () => {
                 fon: "+49123456789",
                 tags: { connect: [{ id: "tag1" }] },
                 firstName: "John",
+                lastName: "Doe",
             };
+
+            const parsedCountry = "DE";
+            const formattedFon = "+49 123456789";
 
             mockValidationService.validatePhoneNumber.mockResolvedValue(undefined);
             mockValidationService.checkExistingContact.mockResolvedValue(undefined);
@@ -118,16 +122,20 @@ describe("ContactsService", () => {
 
             const result = await service.create(createContactDto, "userId");
 
+            expect(mockValidationService.validatePhoneNumber).toHaveBeenCalledWith("+49123456789");
+            expect(mockValidationService.checkExistingContact).toHaveBeenCalledWith("+49123456789", "userId");
+
             expect(helpers.createContactInDatabase).toHaveBeenCalledWith(
-                { firstName: "John" },
-                expect.stringMatching(/^\+49\s?123456789$/),
-                "userId",
-                "DE",
+                { firstName: "John", lastName: "Doe" }, // `rest`
+                formattedFon, // `fon`
+                "userId", // `userID`
+                parsedCountry, // `country`
+                mockPrismaService // `prismaService`
             );
 
             expect(helpers.addTagsToContact).toHaveBeenCalledWith(
                 [{ id: "tag1" }],
-                "123",
+                "123" // contact.id
             );
 
             expect(result).toMatchObject(mockContact());

@@ -1,27 +1,10 @@
-// contacts.controller.helper.ts
-
-import {CustomLogger} from "../../common/loggers/custom.logger.service";
 import {Paginate} from "../../common/pagination/pagination";
 import {ContactWithTags, ContactWithTagsAndGroups} from "../entities/keaz-contact.entity";
-import {ContactsService, FindAllParams} from "../service/contacts.service";
+import {ContactsService, FindAllParams} from "../serviceImplementaion/contacts.service";
 import {ForbiddenException, MethodNotAllowedException, NotFoundException, UnauthorizedException} from "@nestjs/common";
 import {$Enums} from "@prisma/client";
 import {User as UserModel} from "@prisma/client"
 
-export function logRequest(logger: CustomLogger, method: string, url: string, data: any) {
-    logger.logRequest({method, url, data});
-}
-
-export function logResponse(
-    logger: CustomLogger,
-    statusCode: number,
-    statusMessage: string,
-    data?: any
-) {
-    logger.logResponse({
-        message: statusMessage, statusCode, data: data !== undefined ? data : null,
-    });
-}
 
 export function handlePaginatedResponse(
     contacts: ContactWithTagsAndGroups[],
@@ -73,8 +56,3 @@ export async function validateContactAccess(
     return contact;
 }
 
-export function validateUser(user: any): void {
-    if (!user || typeof user !== "object" || !user.id || typeof user.id !== "string") {
-        throw new UnauthorizedException("Invalid or missing user information");
-    }
-}

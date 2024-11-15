@@ -1,19 +1,13 @@
 import { NotFoundException, ForbiddenException, MethodNotAllowedException, UnauthorizedException } from "@nestjs/common";
-import { ContactsService } from "../../src/contacts/service/contacts.service";
-import { CustomLogger } from "../../src/common/loggers/custom.logger.service";
+import { ContactsService } from "../../src/contacts/serviceImplementaion/contacts.service";
 import {
-    logRequest,
-    logResponse,
     handlePaginatedResponse,
     findContactsOrThrow,
     findContactOrThrow,
-    validateContactAccess,
-    validateUser,
 } from "../../src/contacts/controller/contacts.controller.helper";
 import { $Enums } from "@prisma/client";
 
 describe("Contacts Controller Helper", () => {
-    let mockLogger: CustomLogger;
     let mockContactsService: ContactsService;
 
     const mockUser = {
@@ -56,11 +50,6 @@ describe("Contacts Controller Helper", () => {
     };
 
     beforeEach(() => {
-        mockLogger = {
-            logRequest: jest.fn(),
-            logResponse: jest.fn(),
-        } as unknown as CustomLogger;
-
         mockContactsService = {
             findAll: jest.fn(),
             findOne: jest.fn(),
@@ -68,7 +57,6 @@ describe("Contacts Controller Helper", () => {
     });
 
     describe("Contacts Controller Helper", () => {
-        let mockLogger: CustomLogger;
         let mockContactsService: ContactsService;
 
         const mockUser = {
@@ -111,50 +99,10 @@ describe("Contacts Controller Helper", () => {
         };
 
         beforeEach(() => {
-            mockLogger = {
-                logRequest: jest.fn(),
-                logResponse: jest.fn(),
-            } as unknown as CustomLogger;
-
             mockContactsService = {
                 findAll: jest.fn(),
                 findOne: jest.fn(),
             } as unknown as ContactsService;
-        });
-
-        describe("logRequest", () => {
-            it("should call logger.logRequest with correct arguments", () => {
-                logRequest(mockLogger, "GET", "/contacts", { param: "value" });
-                expect(mockLogger.logRequest).toHaveBeenCalledWith({
-                    method: "GET",
-                    url: "/contacts",
-                    data: { param: "value" },
-                });
-            });
-
-            it("should handle missing logger gracefully", () => {
-                expect(() => logRequest(null as any, "GET", "/contacts", {})).toThrowError(TypeError);
-            });
-        });
-
-        describe("logResponse", () => {
-            it("should call logger.logResponse with correct arguments", () => {
-                logResponse(mockLogger, 200, "OK", { data: "value" });
-                expect(mockLogger.logResponse).toHaveBeenCalledWith({
-                    message: "OK",
-                    statusCode: 200,
-                    data: { data: "value" },
-                });
-            });
-
-            it("should set data to null if not provided", () => {
-                logResponse(mockLogger, 200, "OK");
-                expect(mockLogger.logResponse).toHaveBeenCalledWith({
-                    message: "OK",
-                    statusCode: 200,
-                    data: null,
-                });
-            });
         });
 
         describe("handlePaginatedResponse", () => {
@@ -254,30 +202,6 @@ describe("Contacts Controller Helper", () => {
 
         });
 
-        describe("validateUser", () => {
-            it("should not throw for a valid user object", () => {
-                const user = { id: "user1" };
-                expect(() => validateUser(user)).not.toThrow();
-            });
-
-            it("should throw UnauthorizedException for null user", () => {
-                expect(() => validateUser(null)).toThrow(UnauthorizedException);
-            });
-
-            it("should throw UnauthorizedException for non-object user", () => {
-                expect(() => validateUser(123 as any)).toThrow(UnauthorizedException);
-                expect(() => validateUser("invalid" as any)).toThrow(UnauthorizedException);
-            });
-
-            it("should throw UnauthorizedException for missing user.id", () => {
-                expect(() => validateUser({} as any)).toThrow(UnauthorizedException);
-            });
-
-            it("should throw UnauthorizedException for invalid user.id type", () => {
-                expect(() => validateUser({ id: 123 } as any)).toThrow(UnauthorizedException);
-            });
-
-        });
     });
 
 });

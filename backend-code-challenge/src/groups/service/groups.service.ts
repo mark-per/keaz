@@ -1,6 +1,6 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common"
 import { CustomPrismaService } from "nestjs-prisma"
-import { ContactsService } from "../../contacts/service/contacts.service"
+import { ContactsService } from "../../contacts/serviceImplementaion/contacts.service"
 import { ExtendedPrismaClient } from "src/prisma/prisma.extension"
 import { GetPaginateQuery, Order } from "../../common/pagination/pagination"
 

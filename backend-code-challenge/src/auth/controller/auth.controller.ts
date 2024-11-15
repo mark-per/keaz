@@ -20,13 +20,4 @@ export class AuthController {
         }
         return this.authService.login(user);
     }
-
-    @UseGuards(JwtAuthGuard)
-    @Get('profile')
-    getProfile(@User() user) {
-        if (!user) {
-            throw new UnauthorizedException('User not found. Authentication required');
-        }
-        return user.id;
-    }
 }

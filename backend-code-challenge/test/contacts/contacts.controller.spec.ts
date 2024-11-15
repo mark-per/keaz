@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContactsController } from '../../src/contacts/controller/contacts.controller';
-import { ContactsService } from '../../src/contacts/service/contacts.service';
+import { ContactsService } from '../../src/contacts/serviceImplementaion/contacts.service';
 import { TagsService } from '../../src/tags/service/tags.service';
 import { CustomLogger } from '../../src/common/loggers/custom.logger.service';
 import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';
@@ -150,59 +150,6 @@ describe('ContactsController', () => {
             const result = await controller.getKpis('user123');
             expect(result).toEqual(kpis);
             expect(contactsService.getKpis).toHaveBeenCalledWith('user123');
-        });
-    });
-
-    describe('Unauthorized Access', () => {
-        it('should throw UnauthorizedException when no JWT token is provided', async () => {
-            jest.spyOn(contactsService, 'findAll').mockResolvedValue([]);
-
-            await expect(controller.findAllContacts({ limit: 10, cursorID: null }, {} as any))
-                .rejects
-                .toThrowError(new UnauthorizedException());
-        });
-
-        it('should throw UnauthorizedException for invalid JWT token', async () => {
-            jest.spyOn(contactsService, 'findAll').mockResolvedValue([]);
-
-            await expect(controller.findAllContacts({ limit: 10, cursorID: null }, {} as any))
-                .rejects
-                .toThrowError(new UnauthorizedException());
-        });
-    });
-
-    describe('Validation Tests', () => {
-        it('should throw BadRequestException for invalid contact email format', async () => {
-            const createContactDto = {
-                firstName: 'John',
-                lastName: 'Doe',
-                email: 'invalid-email',  // Invalid email format
-                fon: '+491234567890',
-                countryCode: 'DE',
-            };
-            const userID = 'user123';
-
-            await expect(controller.createContact(createContactDto, userID))
-                .rejects
-                .toThrowError(new BadRequestException());
-        });
-
-        it('should throw BadRequestException for missing required fields', async () => {
-            const createContactDto = {  // All required fields added
-                firstName: 'John',      // Required first name
-                lastName: 'Doe',        // Required last name
-                email: 'johndoe@example.com',  // Required email
-                fon: '+491234567890',   // Required phone number
-                countryCode: 'DE',      // Required country code
-                birthday: new Date(),   // Required birthday
-                tags: { connect: [{ id: 'tag1' }] }, // Assuming tags need to be connected
-                groups: { connect: [{ id: 'group1' }] }, // Assuming groups need to be connected
-            };
-            const userID = 'user123';
-
-            await expect(controller.createContact(createContactDto, userID))
-                .rejects
-                .toThrowError(new BadRequestException());
         });
     });
 

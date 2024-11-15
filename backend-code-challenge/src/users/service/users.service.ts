@@ -20,7 +20,6 @@ export class UsersService {
             },
         });    }
 
-    // Method to get all users
     async findAll() {
         return this.prisma.user.findMany();
     }
@@ -32,7 +31,6 @@ export class UsersService {
         return user;
     }
 
-    // Method to update a user by ID
     async update(id: string, updateUserDto: UpdateUserDto) {
         return this.prisma.user.update({
             where: { id },
@@ -40,7 +38,6 @@ export class UsersService {
         });
     }
 
-    // Method to delete a user by ID
     async remove(id: string) {
         return this.prisma.user.delete({ where: { id } });
     }

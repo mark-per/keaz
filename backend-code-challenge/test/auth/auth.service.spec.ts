@@ -5,8 +5,6 @@ import { UsersService } from '../../src/users/service/users.service';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
-// TODO: created and uodated date and time
-
 describe('AuthService', () => {
     let authService: AuthService;
     let usersService: UsersService;
@@ -44,15 +42,22 @@ describe('AuthService', () => {
                 hash: 'hashedPassword',
                 role: 'user',
                 firstName: 'Test',
-                lastName: 'User'
+                lastName: 'User',
             };
             jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
             jest.spyOn(usersService, 'findByEmail').mockResolvedValue(user as any);
 
             const result = await authService.validateUser('test@example.com', 'password');
 
-            expect(result).toEqual({ id: 'user-id', email: 'test@example.com', role: 'user', firstName: 'Test', lastName: 'User' });
+            expect(result).toEqual({
+                id: 'user-id',
+                email: 'test@example.com',
+                role: 'user',
+                firstName: 'Test',
+                lastName: 'User',
+            });
             expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
+            expect(bcrypt.compare).toHaveBeenCalledWith('password', 'hashedPassword');
         });
 
         it('should throw UnauthorizedException if user is not found', async () => {
@@ -60,6 +65,7 @@ describe('AuthService', () => {
 
             await expect(authService.validateUser('invalid@example.com', 'password'))
                 .rejects.toThrow(UnauthorizedException);
+            expect(usersService.findByEmail).toHaveBeenCalledWith('invalid@example.com');
         });
 
         it('should throw UnauthorizedException if password is incorrect', async () => {
@@ -68,16 +74,13 @@ describe('AuthService', () => {
                 email: 'test@example.com',
                 hash: 'hashedPassword',
                 role: 'user',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                firstName: 'Test',
-                lastName: 'User'
             };
             jest.spyOn(usersService, 'findByEmail').mockResolvedValue(user as any);
             jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
 
             await expect(authService.validateUser('test@example.com', 'wrongPassword'))
                 .rejects.toThrow(UnauthorizedException);
+            expect(bcrypt.compare).toHaveBeenCalledWith('wrongPassword', 'hashedPassword');
         });
     });
 
@@ -89,7 +92,7 @@ describe('AuthService', () => {
 
             expect(result).toEqual({
                 access_token: 'test_token',
-                refresh_token: 'test_token'
+                refresh_token: 'test_token',
             });
             expect(jwtService.sign).toHaveBeenCalledWith(
                 { email: user.email, id: user.id, role: user.role },
@@ -97,9 +100,8 @@ describe('AuthService', () => {
             );
             expect(jwtService.sign).toHaveBeenCalledWith(
                 { email: user.email, id: user.id, role: user.role },
-                { expiresIn: '7d' }
+                { expiresIn: '12h' }
             );
         });
     });
-
 });

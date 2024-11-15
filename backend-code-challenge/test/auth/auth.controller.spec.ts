@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../src/auth/controller/auth.controller';
 import { AuthService } from '../../src/auth/service/auth.service';
-import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';
-import { UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from '../../src/auth/dto/login.dto';
 
 describe('AuthController', () => {
@@ -32,17 +31,19 @@ describe('AuthController', () => {
     });
 
     describe('login', () => {
-        it('should return access_token if credentials are valid', async () => {
+        it('should return access and refresh tokens if credentials are valid', async () => {
             const loginDto: LoginDto = { email: 'test@example.com', password: 'password' };
-            const token = { access_token: 'test_token' };
+            const mockUser = { id: 'user-id', email: loginDto.email, role: 'User' };
+            const tokens = { access_token: 'access_token', refresh_token: 'refresh_token' };
 
-            jest.spyOn(authService, 'validateUser').mockResolvedValue({ id: 'user-id', email: loginDto.email });
-            jest.spyOn(authService, 'login').mockResolvedValue(token);
+            jest.spyOn(authService, 'validateUser').mockResolvedValue(mockUser);
+            jest.spyOn(authService, 'login').mockResolvedValue(tokens);
 
             const result = await authController.login(loginDto);
-            expect(result).toEqual(token);
+
+            expect(result).toEqual(tokens);
             expect(authService.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
-            expect(authService.login).toHaveBeenCalledWith({ id: 'user-id', email: loginDto.email });
+            expect(authService.login).toHaveBeenCalledWith(mockUser);
         });
 
         it('should throw UnauthorizedException if credentials are invalid', async () => {
@@ -52,32 +53,7 @@ describe('AuthController', () => {
 
             await expect(authController.login(loginDto)).rejects.toThrow(UnauthorizedException);
             expect(authService.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
-        });
-    });
-
-    describe('getProfile', () => {
-        it('should return the user profile', async () => {
-            const mockUser = { id: 'user-id', email: 'test@example.com' };
-            const result = authController.getProfile(mockUser);
-            expect(result).toEqual(mockUser.id);
-        });
-
-        it('should throw UnauthorizedException if user is missing', () => {
-            const mockUser = null;
-            try {
-                authController.getProfile(mockUser);
-            } catch (error) {
-                expect(error).toBeInstanceOf(UnauthorizedException);
-                expect(error.message).toBe('User not found. Authentication required');
-            }
-        });
-    });
-
-    describe('Guards and Decorators', () => {
-        it('should apply JwtAuthGuard to the getProfile route', () => {
-            const guards = Reflect.getMetadata('__guards__', authController.getProfile);
-            const guardInstances = guards ? guards.map((guard: any) => guard.name) : [];
-            expect(guardInstances).toContain(JwtAuthGuard.name);
+            expect(authService.login).not.toHaveBeenCalled();
         });
     });
 });
