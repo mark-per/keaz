@@ -13,6 +13,7 @@ import {ContactValidationService} from "./contact.validation.service";
 import {buildSearchFilter, addTagsToContact, createContactInDatabase} from "./contact.helpers";
 import {TagsService} from "../../tags/service/tags.service";
 import {getPaginateCommands, Order} from "../../common/pagination/pagination";
+import {IContactsService} from "../service/IContactsService";
 
 export type FindAllParams = {
     userID: string;
@@ -26,7 +27,7 @@ export type FindAllParams = {
 };
 
 @Injectable()
-export class ContactsService {
+export class ContactsService implements IContactsService {
     constructor(
         @Inject(forwardRef(() => GroupsService))
         private readonly groupsService: GroupsService,
