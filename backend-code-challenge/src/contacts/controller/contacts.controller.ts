@@ -6,7 +6,7 @@ import {
     Param,
     Patch,
     Post,
-    Query, UnauthorizedException,
+    Query,
     UseGuards,
 } from "@nestjs/common";
 import {ApiBearerAuth, ApiOperation, ApiTags} from "@nestjs/swagger";
@@ -27,18 +27,15 @@ import {ApiOkResponsePaginated} from "../../decorators/paginate.decorator";
 import {TagsService} from "../../tags/service/tags.service";
 import {GetPaginateQuery, Paginate} from "../../common/pagination/pagination";
 import {User} from "../../decorators/user.decorator";
-import {ContactsService} from "../service/contacts.service";
+import {ContactsService} from "../serviceImplementaion/contacts.service";
 import {CreateContactDto} from "../dto/create-contact.dto";
 import {UpdateContactDto} from "../dto/update-contact.dto";
 import {JwtAuthGuard} from "../../auth/jwt-auth.guard";
-import {CustomLogger} from "../../common/loggers/custom.logger.service";
 import {
-    logRequest,
-    logResponse,
-    handlePaginatedResponse,
-    findContactsOrThrow,
     findContactOrThrow,
-    validateContactAccess, validateUser
+    findContactsOrThrow,
+    handlePaginatedResponse,
+    validateContactAccess,
 } from "./contacts.controller.helper";
 
 @ApiBearerAuth()
@@ -48,8 +45,7 @@ import {
 export class ContactsController {
     constructor(
         private readonly contactsService: ContactsService,
-        private readonly tagsService: TagsService,
-        private readonly logger: CustomLogger,
+        private readonly tagsService: TagsService
     ) {
     }
 
@@ -57,18 +53,9 @@ export class ContactsController {
     @Post()
     async createContact(
         @Body() createContactDto: CreateContactDto,
-        @User("id") userID: string,
+        @User("id") userID: string
     ): Promise<Contact> {
-        logRequest(this.logger, 'POST', '/contacts', createContactDto);
-
-        if (!userID) {
-            throw new UnauthorizedException('No JWT token provided');
-        }
-        validateUser(userID);
-        const result = await this.contactsService.create(createContactDto, userID);
-
-        logResponse(this.logger, 201, 'Created contact', result);
-        return result;
+        return this.contactsService.create(createContactDto, userID);
     }
 
     @ApiOperation({summary: "Retrieve all contacts"})
@@ -76,16 +63,13 @@ export class ContactsController {
     @Get()
     async findAllContacts(
         @Query() query: GetPaginateQuery<ContactsSortings>,
-        @User() user: UserModel,
+        @User() user: UserModel
     ): Promise<Paginate<ContactWithTagsAndGroups>> {
-        logRequest(this.logger, 'GET', '/contacts', query);
-
-        validateUser(user);
-        const contacts = await findContactsOrThrow(this.contactsService, {...query, userID: user.id});
-        logResponse(this.logger, 200, 'Contacts fetched successfully', contacts.length);
-
+        const contacts = await findContactsOrThrow(this.contactsService, {
+            ...query,
+            userID: user.id,
+        });
         return handlePaginatedResponse(contacts, query.limit);
-        // return contacts;
     }
 
     @ApiOperation({summary: "Retrieve contacts by group ID"})
@@ -94,54 +78,35 @@ export class ContactsController {
     async findAllContactsForGroup(
         @Query() query: GetPaginateQuery<ContactsSortings>,
         @User("id") userID: string,
-        @Param("groupID") groupID: string,
+        @Param("groupID") groupID: string
     ): Promise<Paginate<ContactWithTagsAndGroups>> {
-        logRequest(this.logger, 'GET', `/contacts/groups/${groupID}`, query);
-
-        validateUser(userID);
-        const contacts = await findContactsOrThrow(this.contactsService, {...query, userID, groupID});
-        logResponse(this.logger, 200, 'Fetched contacts for group', contacts.length);
-
+        const contacts = await findContactsOrThrow(this.contactsService, {
+            ...query,
+            userID,
+            groupID,
+        });
         return handlePaginatedResponse(contacts, query.limit);
     }
 
     @ApiOperation({summary: "Get contact count for a user"})
     @Get("/count")
     async getCount(@User("id") userID: string): Promise<number> {
-        logRequest(this.logger, 'GET', '/contacts/count', {userID});
-
-        validateUser(userID);
-        const count = await this.contactsService.getCount(userID);
-
-        logResponse(this.logger, 200, 'Retrieved contact count', count);
-        return count;
+        return this.contactsService.getCount(userID);
     }
 
     @ApiOperation({summary: "Retrieve contact KPIs for a user"})
     @Get("/kpi")
     async getKpis(@User("id") userID: string): Promise<ContactKpis> {
-        logRequest(this.logger, 'GET', '/contacts/kpi', {userID});
-
-        validateUser(userID);
-        const kpis = await this.contactsService.getKpis(userID);
-
-        logResponse(this.logger, 200, 'Retrieved contact KPIs', kpis);
-        return kpis;
+        return this.contactsService.getKpis(userID);
     }
 
     @ApiOperation({summary: "Retrieve a specific contact by ID"})
     @Get(":id")
     async findOneContact(
         @Param("id") id: string,
-        @User() user: UserModel,
+        @User() user: UserModel
     ): Promise<ContactWithTags> {
-        logRequest(this.logger, 'GET', `/contacts/${id}`, {userID: user.id});
-
-        validateUser(user);
-        const contact = await validateContactAccess(this.contactsService, id, user);
-
-        logResponse(this.logger, 200, 'Fetched contact', contact);
-        return contact;
+        return validateContactAccess(this.contactsService, id, user);
     }
 
     @ApiOperation({summary: "Upsert (create or update) a contact"})
@@ -149,15 +114,13 @@ export class ContactsController {
     @Post("upsert")
     async createOrUpdateContact(
         @Body() upsertContactDto: UpsertContactDto,
-        @User("id") userID: string,
+        @User("id") userID: string
     ): Promise<Contact> {
-        logRequest(this.logger, 'POST', '/contacts/upsert', upsertContactDto);
-
-        validateUser(userID);
-        const result = await this.contactsService.createOrUpdateContactWithTags(this.tagsService, upsertContactDto, userID);
-
-        logResponse(this.logger, 200, 'Upserted contact', result);
-        return result;
+        return this.contactsService.createOrUpdateContactWithTags(
+            this.tagsService,
+            upsertContactDto,
+            userID
+        );
     }
 
     @ApiOperation({summary: "Update a specific contact"})
@@ -165,16 +128,10 @@ export class ContactsController {
     async updateContact(
         @Param("id") id: string,
         @Body() updateContactDto: UpdateContactDto,
-        @User() user,
+        @User() user
     ): Promise<ContactWithTags> {
-        logRequest(this.logger, 'PATCH', `/contacts/${id}`, updateContactDto);
-
-        validateUser(user);
         const contact = await findContactOrThrow(this.contactsService, id, user);
-        const updatedContact = await this.contactsService.update(contact.id, updateContactDto);
-
-        logResponse(this.logger, 200, 'Updated contact', updatedContact);
-        return updatedContact;
+        return this.contactsService.update(contact.id, updateContactDto);
     }
 
     @ApiOperation({summary: "Add a tag to multiple contacts"})
@@ -182,15 +139,13 @@ export class ContactsController {
     async addTagToContacts(
         @Body() dto: ContactBulkDto,
         @Param("tagID") tagID: string,
-        @User() user,
+        @User() user
     ) {
-        logRequest(this.logger, 'PATCH', `/contacts/tag/${tagID}`, dto);
-
-        validateUser(user);
-        const result = await this.contactsService.addTagToContacts(tagID, dto.contactIDs, 0);
-
-        logResponse(this.logger, 200, 'Added tag to contacts', result);
-        return result;
+        return this.contactsService.addTagToContacts(
+            tagID,
+            dto.contactIDs,
+            0
+        );
     }
 
     @ApiOperation({summary: "Add a tag to a specific contact"})
@@ -198,16 +153,10 @@ export class ContactsController {
     async addTagToContact(
         @Param("id") id: string,
         @Param("tagID") tagID: string,
-        @User() user,
+        @User() user
     ) {
-        logRequest(this.logger, 'PATCH', `/contacts/${id}/tag/${tagID}`, {});
-
-        validateUser(user);
         const contact = await findContactOrThrow(this.contactsService, id, user);
-        const result = await this.contactsService.addTagToContact(tagID, contact.id);
-
-        logResponse(this.logger, 200, 'Added tag to contact', result);
-        return result;
+        return this.contactsService.addTagToContact(tagID, contact.id);
     }
 
     @ApiOperation({summary: "Remove a tag from a specific contact"})
@@ -215,16 +164,10 @@ export class ContactsController {
     async removeTagFromContact(
         @Param("id") id: string,
         @Param("tagID") tagID: string,
-        @User() user,
+        @User() user
     ) {
-        logRequest(this.logger, 'DELETE', `/contacts/${id}/tag/${tagID}`, {});
-
-        validateUser(user);
         const contact = await findContactOrThrow(this.contactsService, id, user);
-        const result = await this.contactsService.removeTagFromContact(tagID, contact);
-
-        logResponse(this.logger, 200, 'Removed tag from contact', result);
-        return result;
+        return this.contactsService.removeTagFromContact(tagID, contact);
     }
 
     @ApiOperation({summary: "Remove multiple contacts"})
@@ -233,26 +176,16 @@ export class ContactsController {
         @Body() dto: ContactBulkDto,
         @User() user
     ): Promise<void> {
-        logRequest(this.logger, 'DELETE', '/contacts/many', dto);
-
-        validateUser(user);
         await this.contactsService.removeMany(dto.contactIDs);
-
-        logResponse(this.logger, 200, 'Removed multiple contacts');
     }
 
     @ApiOperation({summary: "Remove a specific contact"})
     @Delete(":id")
     async removeContact(
         @Param("id") id: string,
-        @User() user,
+        @User() user
     ): Promise<void> {
-        logRequest(this.logger, 'DELETE', `/contacts/${id}`, {});
-
-        validateUser(user);
         const contact = await findContactOrThrow(this.contactsService, id, user);
         await this.contactsService.remove(contact.id);
-
-        logResponse(this.logger, 200, 'Removed contact');
     }
 }

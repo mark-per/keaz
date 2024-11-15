@@ -1,5 +1,3 @@
-// contact.helpers.ts
-
 import {Contact, Prisma} from "@prisma/client";
 import { ContactsSortings } from "../entities/keaz-contact.entity";
 import { escapeRegExp } from "../../common/utils/escapeRegex";

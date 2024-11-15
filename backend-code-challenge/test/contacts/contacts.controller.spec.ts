@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContactsController } from '../../src/contacts/controller/contacts.controller';
-import { ContactsService } from '../../src/contacts/service/contacts.service';
+import { ContactsService } from '../../src/contacts/serviceImplementaion/contacts.service';
 import { TagsService } from '../../src/tags/service/tags.service';
 import { CustomLogger } from '../../src/common/loggers/custom.logger.service';
 import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';

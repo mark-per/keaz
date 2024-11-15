@@ -1,5 +1,5 @@
 import { NotFoundException, ForbiddenException, MethodNotAllowedException, UnauthorizedException } from "@nestjs/common";
-import { ContactsService } from "../../src/contacts/service/contacts.service";
+import { ContactsService } from "../../src/contacts/serviceImplementaion/contacts.service";
 import { CustomLogger } from "../../src/common/loggers/custom.logger.service";
 import {
     logRequest,

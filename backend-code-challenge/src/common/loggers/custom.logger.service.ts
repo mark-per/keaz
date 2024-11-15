@@ -7,80 +7,77 @@ export class CustomLogger implements LoggerService {
     private logger: Logger;
 
     constructor() {
-        // Setting up winston logger to log to both console and file
+        // Configure Winston logger
         this.logger = winston.createLogger({
             level: 'info',
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            ),
             transports: [
                 new winston.transports.Console({
                     format: winston.format.combine(
                         winston.format.colorize(),
-                        winston.format.simple(),
+                        winston.format.simple()
                     ),
                 }),
                 new winston.transports.File({
                     filename: 'logs/app.log',
-                    format: winston.format.combine(
-                        winston.format.timestamp(),
-                        winston.format.json(),
-                    ),
                 }),
             ],
         });
     }
 
-    // Log request details
-    logRequest(req: any) {
-        const { method, url, headers, body } = req;
-        const logData = {
-            method,
-            url,
-            headers,
-            body, // You can choose to sanitize or remove sensitive data here
-        };
-
-        this.logger.info(`Request: ${method} ${url}`, logData);
-    }
-
-    // Log response details
-    logResponse(res: any) {
-        const { statusCode, statusMessage } = res;
-        this.logger.info(`Response: ${statusCode} - ${statusMessage}`, {
-            statusCode,
-            statusMessage,
+    /**
+     * Log HTTP request details.
+     */
+    logRequest(data: Record<string, any>, correlationId: string): void {
+        this.logger.info(`Request: ${data.method} ${data.url}`, {
+            ...data,
+            correlationId,
         });
     }
 
-    // Log error details
-    logError(error: Error) {
-        this.logger.error(`Error: ${error.message}`, {
-            message: error.message,
-            stack: error.stack,
+    /**
+     * Log HTTP response details.
+     */
+    logResponse(data: Record<string, any>, correlationId: string): void {
+        this.logger.info(`Response: ${data.statusCode}`, {
+            ...data,
+            correlationId,
         });
     }
 
-    // Log custom messages
-    logCustomMessage(message: string) {
+    /**
+     * Log errors.
+     */
+    logError(errorData: Record<string, any>, correlationId: string): void {
+        this.logger.error(`Error occurred`, {
+            ...errorData,
+            correlationId,
+        });
+    }
+
+    /**
+     * General log methods for NestJS compatibility.
+     */
+    log(message: string): void {
         this.logger.info(message);
     }
 
-    // Define methods required by LoggerService (if using NestJS's built-in logger service)
-    log(message: string) {
-        this.logger.info(message);
-    }
-
-    error(message: string, trace: string) {
+    error(message: string, trace?: string): void {
         this.logger.error(message, { trace });
     }
 
-    warn(message: string) {
+    warn(message: string): void {
         this.logger.warn(message);
     }
 
-    debug(message: string) {
+    debug(message: string): void {
         this.logger.debug(message);
     }
 
-    verbose(message: string) {
+    verbose(message: string): void {
         this.logger.verbose(message);
     }
 }
