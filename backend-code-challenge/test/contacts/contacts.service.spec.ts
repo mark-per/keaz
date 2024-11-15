@@ -1,42 +1,53 @@
-import { Test, TestingModule } from "@nestjs/testing"
-import { Contact } from "@prisma/client"
-import { CustomPrismaService } from "nestjs-prisma"
-import { ConversationsService } from "src/conversations/conversations.service"
-import { ExtendedPrismaClient } from "src/prisma/prisma.extension"
-import { UsersService } from "src/users/service/users.service"
-import { ContactsService } from "../../src/contacts/service/contacts.service"
+import { Test, TestingModule } from "@nestjs/testing";
+import { Contact } from "@prisma/client";
+import { CustomPrismaService } from "nestjs-prisma";
+import { UsersService } from "../../src/users/service/users.service";
+import { ContactsService } from "../../src/contacts/service/contacts.service";
 
+// Helper to create mock contact objects
 const mockContact = (
-	name = "Jane Doe",
+	firstName = "Jane",
+	lastName = "Doe",
 	id = "123",
 	email = "janedoe@test.com",
 	fon = "+49 123 45678",
 	countryCode = "de",
 	createdAt = new Date(),
 ): Partial<Contact> => ({
-	name,
+	firstName,
+	lastName,
 	id,
 	email,
 	fon,
 	countryCode,
 	createdAt,
-})
+	birthday: new Date(),
+	notes: "",
+	active: true,
+	shopifyID: BigInt(1),
+	shopifyPurchaseCount: 1,
+	byUserID: "user123",
+	updatedAt: new Date(),
+});
 
 const contactArray = [
 	mockContact(),
-	mockContact("Jon Doe", "1234", "jondoe@test.com", "+49 123 456789"),
-]
+	mockContact("Jon", "Doe", "1234", "jondoe@test.com", "+49 123 456789"),
+];
 
-describe("Contactsservice", () => {
-	let service: ContactsService
-	let findManyMock: jest.Mock
+describe("ContactsService", () => {
+	let service: ContactsService;
+	let findManyMock: jest.Mock;
 
 	beforeEach(async () => {
+		// Initialize mock before the service is created
+		findManyMock = jest.fn();
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				ContactsService,
 				{
-					provide: CustomPrismaService<ExtendedPrismaClient>,
+					provide: CustomPrismaService,
 					useValue: {
 						contacts: {
 							findMany: findManyMock,
@@ -44,31 +55,35 @@ describe("Contactsservice", () => {
 					},
 				},
 				{
-					provide: ConversationsService,
-					useValue: {},
-				},
-				{
 					provide: UsersService,
 					useValue: {},
 				},
 			],
-		}).compile()
+		}).compile();
 
-		service = module.get<ContactsService>(ContactsService)
-	})
+		service = module.get<ContactsService>(ContactsService);
+	});
 
 	it("should be defined", () => {
-		expect(service).toBeDefined()
-	})
+		expect(service).toBeDefined();
+	});
 
-	afterEach(() => jest.clearAllMocks())
+	afterEach(() => jest.clearAllMocks());
 
 	it("should return all contacts", async () => {
-		findManyMock = jest.fn().mockResolvedValue(contactArray)
+		// Mock the response for findMany method
+		findManyMock.mockResolvedValue(contactArray);
 
-		// FIXME:
-		// @ts-ignore
-		const contacts = await service.findAll("userId")
-		expect(contacts).toEqual(contactArray)
-	})
-})
+		// Pass the correct FindAllParams type
+		const findAllParams = { userID: "user123", limit: 10, cursorID: null };
+
+		// Call the findAll method from ContactsService
+		const contacts = await service.findAll(findAllParams);
+
+		// Ensure the result matches the mock
+		expect(contacts).toEqual(contactArray);
+		expect(findManyMock).toHaveBeenCalledWith({
+			where: { byUserID: "user123" }, // Assuming the find method uses a userID filter
+		});
+	});
+});

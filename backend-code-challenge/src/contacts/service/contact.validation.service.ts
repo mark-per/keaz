@@ -1,17 +1,16 @@
-// src/contacts/service/contact.validation.service.ts
 import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
-import {formatFon} from "../../common/utils/formatPhonenumber"; // Make sure to inject ContactsService
+import {formatFon} from "../../common/utils/formatPhonenumber";
 
 @Injectable()
 export class ContactValidationService {
     constructor(
-        @Inject(forwardRef(() => ContactsService))  // Use forwardRef here
+        @Inject(forwardRef(() => ContactsService))
         private readonly contactsService: ContactsService,    ) {}
 
     async validatePhoneNumber(fon: string): Promise<boolean> {
-        const internationalFormat = formatFon(fon); // Use formatFon to both format and validate
+        const internationalFormat = formatFon(fon);
 
         if (!internationalFormat) {
             throw new ForbiddenException('Invalid phone number');

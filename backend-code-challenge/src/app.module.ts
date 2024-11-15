@@ -9,6 +9,7 @@ import { TagsModule } from "./tags/tags.module"
 import {UsersModule} from "./users/users.module";
 import { JwtModule } from '@nestjs/jwt';
 import {AuthModule} from "./auth/auth.module";
+import { CustomLogger } from './common/loggers/custom.logger.service'; // Import the custom logger
 
 
 @Module({
